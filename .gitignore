@@ -134,3 +134,4 @@ dist
 /.env
 /audio
 /api copy.js
+/audio.mp3
