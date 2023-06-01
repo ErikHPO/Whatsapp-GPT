@@ -51,9 +51,75 @@ if (!fs.existsSync(logsDirPath)) {
     return {filePath, filename, audioData};
 }
 
+function getMessageFromLog(phoneNumber) {
+  const logFilePath = path.join(logsDirPath, `${phoneNumber}.log`);
+
+  if (!fs.existsSync(logFilePath)) {
+    console.log('Arquivo de log não encontrado.');
+    return [];
+  }
+
+  const logContent = fs.readFileSync(logFilePath, 'utf8');
+  const lines = logContent.split(/\r?\n/);
+  let messageArray = [];
+  let currentRole = '';
+  let currentMessage = {
+    role: '',
+    content: '',
+  };
+
+  lines.forEach((line) => {
+    const trimmedLine = line.trim();
+
+    if (trimmedLine.startsWith(`[${phoneNumber}`)) {
+      // Nova mensagem do 'user'
+      // console.log('trimmedLine User: ', trimmedLine)
+      if (currentRole === 'assistant') {
+        console.log('Trocou de role')
+        messageArray.push(currentMessage)
+        currentMessage = {
+          role: '',
+          content: ''
+          
+        }
+      }
+
+      currentRole = 'user';
+      currentMessage = {
+        role: currentRole,
+        content: `${currentMessage.content}. ${trimmedLine.substring(trimmedLine.indexOf(']') + 1).trim()}`,
+      };
+    } else if (trimmedLine.startsWith(`[ME@`)) {
+      // console.log('trimmedLine ME: ', trimmedLine)
+      // Nova mensagem do 'assistant'
+      if (currentRole === 'user')  {
+        messageArray.push(currentMessage);
+        currentMessage = {
+          role: '',
+          content: '' 
+        }
+      }
+      currentRole = 'assistant';
+      currentMessage = {
+        role: currentRole,
+        content: `${currentMessage.content}. ${trimmedLine.substring(trimmedLine.indexOf(']') + 1).trim()}`,
+      };
+    } else if (currentMessage && trimmedLine !== '') {
+      currentMessage.content += `\n${trimmedLine}`;
+    }
+  });
+
+  // Adicionar a última mensagem ao array, se existir
+  if (currentMessage) {
+    messageArray.push(currentMessage);
+  }
+  console.log('MessageArray ', messageArray)
+  return messageArray;
+}
 
 
   module.exports = {
     logChatMessage,
     saveAudioFile,
+    getMessageFromLog
     }
