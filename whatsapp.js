@@ -28,6 +28,7 @@ async function sendMedia( sender, imgUrl, contact) {
 }
 
 async function sendMessage(sender, message, ) {
+    if (!message) return;
     await client.sendMessage(sender, message)
 }
 

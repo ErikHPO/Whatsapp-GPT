@@ -1,13 +1,14 @@
 require('dotenv').config()
 const { getDavinciResponse, getDalleResponse, getWhisperTranscription } = require('./api.js')
 const { initializeWhatsapp , sendMedia, sendMessage, } = require('./whatsapp.js')
-const { logChatMessage, saveAudioFile } = require('./logs.js')
+const { logChatMessage, saveAudioFile, getMessageFromLog } = require('./logs.js')
 const logIsActive = Boolean(process.env.LOG_MESSAGES)
 const debugIsActive = Boolean(process.env.DEBUG_MODE)
 
 
 const client = initializeWhatsapp()
 client.on('message', async(message) => {
+    // se for msg de audio
     if(message.type === 'ptt'){
         const filePath = await saveAudioFile(message)
         console.log('filePath: ', filePath)
@@ -16,15 +17,20 @@ client.on('message', async(message) => {
         sendMessage(message.from, transcription, { mentions: [contact] })
         console.log('Transcription: ', transcription)
     }
+    // se for msg de texto
+    if(message.type === 'chat'){
+    const messages = getMessageFromLog(message.from)
+    if (messages === []) {
+        console.log('messages is empty')
+        
+    }
+    }
 })
 client.on('message_create', async(message) => {
-    
     // SE FOR UMA MENSAGEM DE AUDIO
     if(message.type === 'ptt'){
         const {filePath, filename, audioData} = await saveAudioFile(message)
     }
-
-    console.log('Autor:', message._data.notifyName)
     logIsActive && logChatMessage(message)
     commands(message)
 })

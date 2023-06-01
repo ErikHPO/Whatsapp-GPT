@@ -37,6 +37,15 @@ getDavinciResponse = async (clientText) => {
     }
 }
 
+getChatResponse = async (conversationArray, clientName) => {
+    const body = {
+        "model": "gpt-3.5-turbo",
+        "messages": conversationArray,
+        "max_tokens":  bodyProps.maxTokens,
+        "temperature": bodyProps.temperature,
+    }
+}
+
 
  getDalleResponse = async (clientText) => {
     const body = {
